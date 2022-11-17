@@ -12,24 +12,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.12.0
-
       - name: Create tmp
         run: mkdir -p tmp
 
       - name: Copy hashsum
         run: cp 'spec/jmmb avatar.png.sha256' tmp
-
-      - name: TEST
-        working-directory: tmp
-        run: file ../zippydl
-
-      - name: TEST
-        working-directory: tmp
-        run: ls -al ../zippydl
 
       - name: Download
         working-directory: tmp
