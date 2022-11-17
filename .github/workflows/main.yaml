@@ -23,6 +23,14 @@ jobs:
       - name: Copy hashsum
         run: cp 'spec/jmmb avatar.png.sha256' tmp
 
+      - name: TEST
+        working-directory: tmp
+        run: file ../zippydl
+
+      - name: TEST
+        working-directory: tmp
+        run: ls -al ../zippydl
+
       - name: Download
         working-directory: tmp
         run: ../zippydl https://www83.zippyshare.com/v/yakMuCxe/file.html
