@@ -101,7 +101,7 @@ download() {
 	local page
 	local data
 	page="$(wgetua --save-headers -O- -q "${url}")"
-	data="$(node <(echo "${NODE_SCRIPT}") "${url}" <(echo "${page}"))"
+	data="$(node - "${url}" <(echo "${page}") <<< "${NODE_SCRIPT}")"
 	if [[ "$?" != 0 ]]; then
 		echo 'Script error'
 		echo
