@@ -57,7 +57,7 @@ cat << "JS"
 				}
 			},
 			result: () => '' + JSON.stringify({
-				href: ids.dlbutton.href,
+				href: ids.dlbutton.href || '',
 				cookies
 			})
 		};
@@ -78,7 +78,7 @@ cat << "JS"
 	try {
 		data = JSON.parse('' + api.result());
 	} catch (_) {}
-	if (data) {
+	if (data && data.href) {
 		console.log('url=' + (new URL(data.href, url)).href);
 		console.log('cookie=' + Object.entries(data.cookies)
 			.map(a => a[0] + '=' + encodeURIComponent(a[1]))
@@ -101,9 +101,15 @@ download() {
 	local page
 	local data
 	page="$(wgetua --save-headers -O- -q "${url}")"
+	status="${page%%$'\r\n'*}"
+	if [[ "${status}" != 'HTTP/'*' 200 '* ]]; then
+		echo "Page error: ${status}"
+		echo
+		return 1
+	fi
 	data="$(node - "${url}" <(echo "${page}") <<< "${NODE_SCRIPT}")"
 	if [[ "$?" != 0 ]]; then
-		echo 'Script error'
+		echo 'Page error: Script'
 		echo
 		return 1
 	fi
@@ -113,7 +119,7 @@ download() {
 		local "d_${line%%=*}"="${line#*=}"
 	done <<< "${data}"
 	if [[ -z "${d_url}" ]]; then
-		echo 'No download'
+		echo 'Page error: Link'
 		echo
 		return 1
 	fi
