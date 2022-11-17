@@ -28,4 +28,4 @@ jobs:
         run: ../zippydl https://www83.zippyshare.com/v/yakMuCxe/file.html
 
       - name: Verify hashsum
-        run: shasum -c 'spec/jmmb avatar.png.sha256'
+        run: shasum -c 'jmmb avatar.png.sha256'
