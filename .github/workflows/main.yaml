@@ -28,4 +28,5 @@ jobs:
         run: ../zippydl https://www83.zippyshare.com/v/yakMuCxe/file.html
 
       - name: Verify hashsum
+        working-directory: tmp
         run: shasum -c 'jmmb avatar.png.sha256'
