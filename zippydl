@@ -1,0 +1,163 @@
+#!/bin/bash
+set -o errexit
+set -o nounset
+set -o pipefail
+
+VERSION='0.0.0'
+
+NODE_SCRIPT="$(
+cat << "JS"
+	'use strict';
+	const {createContext, runInContext} = require('vm');
+	const {readFileSync} = require('fs');
+	const url = process.argv[2];
+	const page = readFileSync(process.argv[3], 'utf8');
+	const split = (s, d) => {
+		const parts = s.split(d);
+		return [parts[0], parts.slice(1).join(d)];
+	};
+	const [head, body] = split(page, '\r\n\r\n');
+	const [status, ...headers] = head.split('\r\n');
+	const cookies = {};
+	for (const line of headers) {
+		const [header, value] = split(line, ': ');
+		if (header.toLowerCase() === 'set-cookie') {
+			const [k, v] = value.split(';', 1)[0].split('=', 2);
+			cookies[k] = decodeURIComponent(v);
+		}
+	}
+	const ctx = createContext(Object.create(null));
+	const run = js => runInContext(js, ctx, {timeout: 1000});
+	const api = run('(' + function(cookies) {
+		const ids = {
+			dlbutton: {},
+			zippyfake: {}
+		};
+		const ready = [];
+		window = self = top = globalThis = this;
+		document = {
+			getElementById: function getElementById(id) {
+				return (ids[id] = ids[id] || {});
+			}
+		};
+		$ = function() {
+			return {
+				ready: function(wait) {
+					ready.push(wait);
+				}
+			};
+		};
+		$.cookie = function(name, value, options) {
+			cookies[name] = value;
+		};
+		return {
+			ready: () => {
+				while (ready.length) {
+					ready.shift()();
+				}
+			},
+			result: () => '' + JSON.stringify({
+				href: ids.dlbutton.href,
+				cookies
+			})
+		};
+	} + ').call(this, ' + JSON.stringify(cookies) + ')');
+	const reg = /<script[^>]*>([\s\S]*?)<\/script>/i;
+	for (const script of body.match(new RegExp(reg, 'ig')) || []) {
+		const m = script.match(reg);
+		if (m && /(dlbutton|zippyfake)/.test(m[1])) {
+			try {
+				run(m[1]);
+			} catch (_) {}
+		}
+	}
+	try {
+		api.ready();
+	} catch (_) {}
+	let data = null;
+	try {
+		data = JSON.parse('' + api.result());
+	} catch (_) {}
+	if (data) {
+		console.log('url=' + (new URL(data.href, url)).href);
+		console.log('cookie=' + Object.entries(data.cookies)
+			.map(a => a[0] + '=' + encodeURIComponent(a[1]))
+			.join('; ')
+		);
+	}
+JS
+)"
+
+wgetua() {
+	if [[ "${ZIPPYDL_USER_AGENT-a}" == "${ZIPPYDL_USER_AGENT-b}" ]]; then
+		wget -U "${ZIPPYDL_USER_AGENT}" "$@"
+	else
+		wget "$@"
+	fi
+}
+
+download() {
+	local url="$1"
+	local page
+	local data
+	page="$(wgetua --save-headers -O- -q "${url}")"
+	data="$(node <(echo "${NODE_SCRIPT}") "${url}" <(echo "${page}"))"
+	if [[ "$?" != 0 ]]; then
+		echo 'Script error'
+		echo
+		return 1
+	fi
+	local d_url
+	local d_cookie
+	while read -r line; do
+		local "d_${line%%=*}"="${line#*=}"
+	done <<< "${data}"
+	if [[ -z "${d_url}" ]]; then
+		echo 'No download'
+		echo
+		return 1
+	fi
+	wgetua -S -c --referer="${url}" --header="Cookie: ${d_cookie}" "${d_url}"
+	return 0
+}
+
+usage() {
+	echo "Usage: $(basename "$0") [options...] [url]"
+	echo " -h, --help          Show help"
+	echo " -V, --version       Show version"
+}
+
+if [[ "$#" -ge 1 ]]; then
+	if [[ "$1" == '-V' || "$1" == '--version' ]]; then
+		echo "$VERSION"
+		exit 0
+	fi
+	if [[ "$1" == '-h' || "$1" == '--help' ]]; then
+		usage
+		exit 0
+	fi
+fi
+
+ret=0
+if [[ -t 0 ]]; then
+	if [[ "$#" != 1 ]]; then
+		usage >&2
+		exit 1
+	fi
+	url="$1"
+	(download "$url") && true
+	if [[ "$?" != 0 ]]; then
+		ret=1
+	fi
+else
+	while read -r line; do
+		if [[ "${line}" = 'https://'* || "${line}" = 'http://'* ]]; then
+			echo "${line}"
+			(download "${line}") && true
+			if [[ "$?" != 0 ]]; then
+				ret=1
+			fi
+		fi
+	done < <(cat; echo)
+fi
+exit "${ret}"
