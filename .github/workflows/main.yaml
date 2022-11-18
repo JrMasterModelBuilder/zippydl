@@ -12,16 +12,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Create tmp
-        run: mkdir -p tmp
-
-      - name: Copy hashsum
-        run: cp 'spec/jmmb avatar.png.sha256' tmp
-
-      - name: Download
-        working-directory: tmp
-        run: ../zippydl https://www83.zippyshare.com/v/yakMuCxe/file.html
-
-      - name: Verify hashsum
-        working-directory: tmp
-        run: shasum -c 'jmmb avatar.png.sha256'
+      - name: Test
+        run: ./spec/tests

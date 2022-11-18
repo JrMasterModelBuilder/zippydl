@@ -100,10 +100,12 @@ download() {
 	local url="$1"
 	local page
 	local data
-	page="$(wgetua --save-headers -O- -q "${url}")"
+	page="$(
+		wgetua -q --content-on-error --save-headers -O- "${url}" 2>&1 || true
+	)"
 	status="${page%%$'\r\n'*}"
 	if [[ "${status}" != 'HTTP/'*' 200 '* ]]; then
-		echo "Page error: ${status}"
+		echo "Page error: ${status:-Unknown}"
 		echo
 		return 1
 	fi
