@@ -14,6 +14,11 @@ A bash script using node and wget to download from a Zippyshare link, using Node
 Usage: zippydl [options...] <url>
  -h, --help          Show help
  -V, --version       Show version
+
+Env:
+ ZIPPYDL_USER_AGENT=<string>        User agent string
+ ZIPPYDL_CA_CERTIFICATE=<file>      CA cert bundle
+ ZIPPYDL_NO_CHECK_CERTIFICATE=<0|1> Do not validate the server cert
 ```
 
 # Bugs

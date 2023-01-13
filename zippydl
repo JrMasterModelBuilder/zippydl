@@ -93,7 +93,7 @@ wgetex() {
 	if [[ "${ZIPPYDL_USER_AGENT-a}" == "${ZIPPYDL_USER_AGENT-b}" ]]; then
 		args=('-U' "${ZIPPYDL_USER_AGENT}" "${args[@]}")
 	fi
-	if [[ -n "${ZIPPYDL_NO_CHECK_CERTIFICATE-}" ]]; then
+	if [[ "${ZIPPYDL_NO_CHECK_CERTIFICATE-0}" == 1 ]]; then
 		args=('--no-check-certificate' "${args[@]}")
 	elif [[ -n "${ZIPPYDL_CA_CERTIFICATE-}" ]]; then
 		args=("--ca-certificate=${ZIPPYDL_CA_CERTIFICATE}" "${args[@]}")
@@ -138,6 +138,11 @@ usage() {
 	echo "Usage: $(basename "$0") [options...] <url>"
 	echo " -h, --help          Show help"
 	echo " -V, --version       Show version"
+	echo
+	echo "Env:"
+	echo " ZIPPYDL_USER_AGENT=<string>        User agent string"
+	echo " ZIPPYDL_CA_CERTIFICATE=<file>      CA cert bundle"
+	echo " ZIPPYDL_NO_CHECK_CERTIFICATE=<0|1> Do not validate the server cert"
 }
 
 if [[ "$#" -lt 1 ]]; then
