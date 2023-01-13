@@ -15,3 +15,5 @@ jobs:
 
       - name: Test
         run: ./spec/tests
+        env:
+          ZIPPYDL_NO_CHECK_CERTIFICATE: 1
