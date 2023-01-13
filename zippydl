@@ -88,28 +88,33 @@ cat << "JS"
 JS
 )"
 
-wgetua() {
+wgetex() {
+	args=("$@")
 	if [[ "${ZIPPYDL_USER_AGENT-a}" == "${ZIPPYDL_USER_AGENT-b}" ]]; then
-		wget -U "${ZIPPYDL_USER_AGENT}" "$@"
-	else
-		wget "$@"
+		args=('-U' "${ZIPPYDL_USER_AGENT}" "${args[@]}")
 	fi
+	if [[ -n "${ZIPPYDL_NO_CHECK_CERTIFICATE-}" ]]; then
+		args=('--no-check-certificate' "${args[@]}")
+	elif [[ -n "${ZIPPYDL_CA_CERTIFICATE-}" ]]; then
+		args=("--ca-certificate=${ZIPPYDL_CA_CERTIFICATE}" "${args[@]}")
+	fi
+	wget "${args[@]}"
 }
 
 download() {
 	local url="$1"
-	local page
-	local data
-	page="$(
-		wgetua -q --content-on-error --save-headers -O- "${url}" 2>&1 || true
-	)"
-	status="${page%%$'\r\n'*}"
-	if [[ "${status}" != 'HTTP/'*' 200 '* ]]; then
-		echo "Page error: ${status:-Unknown}"
+	local page="$(wgetex -nv --content-on-error --save-headers -O- "${url}")"
+	if [[ "$?" != 0 ]]; then
 		echo
 		return 1
 	fi
-	data="$(node - "${url}" <(echo "${page}") <<< "${NODE_SCRIPT}")"
+	local status="${page%%$'\r\n'*}"
+	if [[ "${status}" != 'HTTP/'*' 200 '* ]]; then
+		echo "Page error: ${status:-Read}"
+		echo
+		return 1
+	fi
+	local data="$(node - "${url}" <(echo "${page}") <<< "${NODE_SCRIPT}")"
 	if [[ "$?" != 0 ]]; then
 		echo 'Page error: Script'
 		echo
@@ -125,7 +130,7 @@ download() {
 		echo
 		return 1
 	fi
-	wgetua -S -c --referer="${url}" --header="Cookie: ${d_cookie}" "${d_url}"
+	wgetex -S -c --referer="${url}" --header="Cookie: ${d_cookie}" "${d_url}"
 	return 0
 }
 
