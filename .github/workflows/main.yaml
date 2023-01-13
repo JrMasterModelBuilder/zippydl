@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    if: github.event_name != 'schedule' || github.repository == 'JrMasterModelBuilder/zippydl'
+    if: github.repository == 'JrMasterModelBuilder/zippydl'
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
