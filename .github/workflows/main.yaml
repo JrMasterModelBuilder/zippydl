@@ -19,4 +19,5 @@ jobs:
       - name: Test
         run: bash spec/ci.sh
         env:
+          CI_AUTO_INSTALL: 1
           ZIPPYDL_NO_CHECK_CERTIFICATE: 1

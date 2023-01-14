@@ -21,9 +21,23 @@ for method in "${methods[@]}"; do
 
 	torpid=''
 	if [[ "${method}" == 'tor' ]]; then
-		# Install these on the first use.
-		brew list tor || brew install tor
-		brew list proxychains-ng || brew install proxychains-ng
+		if ! command -v toraaa &> /dev/null; then
+			if [[ "${CI_AUTO_INSTALL-}" == 1 ]]; then
+				brew install tor
+			else
+				echo 'Missing: tor'
+				exit 1
+			fi
+		fi
+
+		if ! command -v proxychains4 &> /dev/null; then
+			if [[ "${CI_AUTO_INSTALL-}" == 1 ]]; then
+				brew install proxychains-ng
+			else
+				echo 'Missing: proxychains4'
+				exit 1
+			fi
+		fi
 
 		rm -rf "${tmpdir}"
 		mkdir "${tmpdir}"
