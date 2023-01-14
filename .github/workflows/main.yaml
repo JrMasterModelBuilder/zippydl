@@ -10,10 +10,16 @@ jobs:
     if: github.event_name != 'schedule' || github.repository == 'JrMasterModelBuilder/zippydl'
     runs-on: ubuntu-20.04
     steps:
+      - name: Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Homebrew Install
+        run: brew install tor proxychains-ng
+
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Test
-        run: ./spec/tests
+        run: bash spec/ci.sh
         env:
           ZIPPYDL_NO_CHECK_CERTIFICATE: 1
