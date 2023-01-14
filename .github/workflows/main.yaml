@@ -13,9 +13,6 @@ jobs:
       - name: Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Homebrew Install
-        run: brew install tor proxychains-ng
-
       - name: Checkout
         uses: actions/checkout@v3
 

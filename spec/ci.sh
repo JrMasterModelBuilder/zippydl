@@ -21,6 +21,10 @@ for method in "${methods[@]}"; do
 
 	torpid=''
 	if [[ "${method}" == 'tor' ]]; then
+		# Install these on the first use.
+		brew list tor || brew install tor
+		brew list proxychains-ng || brew install proxychains-ng
+
 		rm -rf "${tmpdir}"
 		mkdir "${tmpdir}"
 		timeout 300 tor | tee "${torlog}" &
