@@ -21,3 +21,9 @@ jobs:
         env:
           CI_AUTO_INSTALL: 1
           ZIPPYDL_NO_CHECK_CERTIFICATE: 1
+
+      - name: Env
+        run: echo "TEST=$(echo 123)" >> $GITHUB_ENV
+
+      - name: Enved
+        run: echo "$TEST"
