@@ -22,8 +22,8 @@ jobs:
           CI_AUTO_INSTALL: 1
           ZIPPYDL_NO_CHECK_CERTIFICATE: 1
 
-      - name: Env
-        run: echo "TEST=$(echo 123)" >> $GITHUB_ENV
-
-      - name: Enved
-        run: echo "$TEST"
+      - name: Keep Alive
+        uses: gautamkrishnar/keepalive-workflow@v1
+        commit_message: ${{ KA_COMMIT_MESSAGE }}
+        committer_username: ${{ KA_COMMIT_USER }}
+        committer_email: ${{ KA_COMMIT_EMAIL }}
